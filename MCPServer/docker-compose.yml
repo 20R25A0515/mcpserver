@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mcp_server_render
+      POSTGRES_USER: mcp_server_render_user
+      POSTGRES_PASSWORD: uigEBSNFPi4u3aIkz8mPH0IZFaNSEJrd
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
