@@ -114,12 +114,21 @@ public class McpRegistry {
     }
 
     private Map<String,Object> invokeGetEmployeeLeave(JsonNode args) {
+
         String email = args.has("email") ? args.get("email").asText() : null;
         if (email == null) throw new IllegalArgumentException("email is required");
-        Map<String,Object> summary = (Map<String, Object>) employeeService.getLeaveSummary(email);
-        if (summary == null) return Map.of("found", false);
-        summary.put("found", true);
-        return summary;
+
+        Map<String,Object> summary = employeeService.getLeaveSummary(email);
+
+        if (summary == null) {
+            return Map.of("found", false);
+        }
+
+        // convert to mutable map
+        Map<String,Object> result = new HashMap<>(summary);
+        result.put("found", true);
+
+        return result;
     }
 
     // Simple tool definition holder

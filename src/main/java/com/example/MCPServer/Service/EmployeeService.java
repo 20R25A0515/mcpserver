@@ -6,6 +6,7 @@ import com.example.MCPServer.Service.dto.Employee;
 import com.example.MCPServer.dao.EmployeeDao;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -20,16 +21,22 @@ public class EmployeeService {
     }
 
     // Example of combining logic: compute leave summary
-    public Object getLeaveSummary(String email) {
+    public Map<String, Object> getLeaveSummary(String email) {
+
         Employee e = dao.findByEmail(email);
-        if (e == null) return null;
-        return Map.of(
-                "email", e.getEmail(),
-                "name", e.getName(),
-                "sickLeaves", e.getSickLeaves(),
-                "casualLeaves", e.getCasualLeaves(),
-                "earnedLeaves", e.getEarnedLeaves()
-        );
+
+        if (e == null) {
+            return null;
+        }
+
+        Map<String,Object> map = new HashMap<>();
+        map.put("email", e.getEmail());
+        map.put("name", e.getName());
+        map.put("sickLeaves", e.getSickLeaves());
+        map.put("casualLeaves", e.getCasualLeaves());
+        map.put("earnedLeaves", e.getEarnedLeaves());
+
+        return map;
     }
 
 
