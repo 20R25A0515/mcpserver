@@ -47,5 +47,6 @@ public class McpWebSocketHandler extends TextWebSocketHandler {
         }
         Map<String, Object> response = Map.of("type", "response", "id", id, "result", result);
         session.sendMessage(new TextMessage(mapper.writeValueAsString(response)));
+
     }
 }
