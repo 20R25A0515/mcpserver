@@ -118,7 +118,7 @@ public class McpController {
         manifest.put("name", "HRMCP");
         manifest.put("description", "HR MCP server for employee data");
         manifest.put("protocol", "mcp");
-        manifest.put("entryPoint", "wss://your-domain/mcp/ws"); // IMPORTANT: Use your Render WebSocket URL
+        manifest.put("entryPoint", "wss://mcpserver-g4so.onrender.com/mcp/ws"); // IMPORTANT: Use your Render WebSocket URL
         manifest.put("tools", registry.getToolDefinitions());
         manifest.put("resources", registry.getResources());
         return ResponseEntity.ok(manifest);
