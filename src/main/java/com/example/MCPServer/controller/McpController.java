@@ -108,16 +108,20 @@ public class McpController {
                 "endpoints", List.of("/mcp/status", "/mcp/tools", "/mcp/resources", "/mcp/execute")
         ));
     }
-    @GetMapping("/manifest")
+    @GetMapping(value = "/manifest.json", produces = "application/json")
+
     public ResponseEntity<?> manifest() {
         Map<String, Object> manifest = new LinkedHashMap<>();
+        manifest.put("version", "1.0");
         manifest.put("name", "HRMCP");
-        manifest.put("version", "1.0.0");
+        manifest.put("description", "HR MCP server for employee data");
         manifest.put("tools", registry.getToolDefinitions());
         manifest.put("resources", registry.getResources());
-
         return ResponseEntity.ok(manifest);
+
     }
+
+
 
     @GetMapping("/status")
     public ResponseEntity<?> status() {

@@ -131,17 +131,30 @@ public class McpRegistry {
         return result;
     }
 
-    // Simple tool definition holder
     public static class ToolDef {
         private final String name;
         private final String description;
         private final Object inputSchema;
 
         public ToolDef(String name, String description, Object inputSchema) {
-            this.name = name; this.description = description; this.inputSchema = inputSchema;
+            this.name = name;
+            this.description = description;
+            this.inputSchema = inputSchema;
         }
-        public String getName(){return name;}
-        public Map<String,Object> toMap(){
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Object getInputSchema() {
+            return inputSchema;
+        }
+
+        public Map<String, Object> toMap() {
             return Map.of(
                     "name", name,
                     "description", description,
@@ -149,5 +162,6 @@ public class McpRegistry {
             );
         }
     }
+
 }
 
