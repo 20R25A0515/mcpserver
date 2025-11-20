@@ -89,13 +89,16 @@ public class McpController {
      * 🔵 Copilot Studio calls this first (GET handshake)
      */
     @GetMapping
-    public ResponseEntity<?> rootGet() {
-        return ResponseEntity.ok(Map.of(
-                "status", "ok",
-                "message", "MCP server root endpoint (GET)",
-                "endpoints", List.of("/mcp/status", "/mcp/tools", "/mcp/resources", "/mcp/execute")
-        ));
+    public ResponseEntity<?> root() {
+        return ResponseEntity.ok(
+                Map.of(
+                        "status", "ok",
+                        "tools", registry.getToolDefinitions(),
+                        "resources", registry.getResources()
+                )
+        );
     }
+
 
     /**
      * 🔵 Copilot Studio ALSO calls POST /mcp (POST handshake)
