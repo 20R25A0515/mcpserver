@@ -19,19 +19,30 @@ public class McpController {
         this.dispatcher = dispatcher;
     }
 
+    // --- GET request for Copilot testing ---
+    @GetMapping
+    public ResponseEntity<?> healthCheck() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "message", "MCP Server is running",
+                "tools", new String[]{"getEmployeeDetails", "getEmployeeLeave"}
+        ));
+    }
+
+    // --- POST request to execute MCP tools ---
     @PostMapping
-    public ResponseEntity<?> handleMcp(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> handleMcp(@RequestBody(required = false) Map<String, Object> body) {
 
-        String tool = (String) body.get("tool");
-        Object args = body.get("arguments");
-
-        if (tool == null) {
-            // Copilot sends empty requests to test connection
+        // Copilot sends empty POST for testing
+        if (body == null || body.get("tool") == null) {
             return ResponseEntity.ok(Map.of(
                     "status", "ok",
                     "message", "MCP Server is running"
             ));
         }
+
+        String tool = (String) body.get("tool");
+        Object args = body.get("arguments");
 
         JsonNode arguments = mapper.convertValue(args, JsonNode.class);
 
