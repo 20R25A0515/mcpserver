@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS employee (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100),
-  email VARCHAR(150) UNIQUE,
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
   position VARCHAR(100),
-  sick_leaves INT DEFAULT 0,
-  casual_leaves INT DEFAULT 0,
-  earned_leaves INT DEFAULT 0
+  sick_leaves INTEGER DEFAULT 0,
+  casual_leaves INTEGER DEFAULT 0,
+  earned_leaves INTEGER DEFAULT 0
 );
+
