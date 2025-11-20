@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "name": "HRMCP",
+  "description": "HR MCP server for employee data",
+  "entryPoint": "wss://your-domain/mcp/ws",
+  "protocol": "mcp",
+  "tools": [
+    {
+      "name": "getEmployeeDetails",
+      "description": "Fetch employee details by email",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "description": "Employee email" }
+        },
+        "required": ["email"]
+      }
+    },
+    {
+      "name": "getEmployeeLeave",
+      "description": "Get leave summary by email",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "description": "Employee email" }
+        },
+        "required": ["email"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "name": "hr-sample-image",
+      "description": "Example resource",
+      "mimeType": "image/png",
+      "uri": "https://your-domain/public/hr-sample-image.png"
+    }
+  ]
+}
