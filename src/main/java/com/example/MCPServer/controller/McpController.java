@@ -26,7 +26,11 @@ public class McpController {
         Object args = body.get("arguments");
 
         if (tool == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Tool name is missing"));
+            // Copilot sends empty requests to test connection
+            return ResponseEntity.ok(Map.of(
+                    "status", "ok",
+                    "message", "MCP Server is running"
+            ));
         }
 
         JsonNode arguments = mapper.convertValue(args, JsonNode.class);
