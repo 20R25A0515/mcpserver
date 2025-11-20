@@ -1,56 +1,137 @@
+//package com.example.MCPServer.controller;
+//
+//import com.example.MCPServer.core.ToolDispatcher;
+//import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.web.bind.annotation.*;
+//
+//import java.util.Map;
+//
+//@RestController
+//@RequestMapping("/mcp")
+//public class McpController {
+//
+//    private final ToolDispatcher dispatcher;
+//    private final ObjectMapper mapper = new ObjectMapper();
+//
+//    public McpController(ToolDispatcher dispatcher) {
+//        this.dispatcher = dispatcher;
+//    }
+//
+//    // --- GET request for Copilot testing ---
+//    @GetMapping
+//    public ResponseEntity<?> healthCheck() {
+//        return ResponseEntity.ok(Map.of(
+//                "status", "ok",
+//                "message", "MCP Server is running",
+//                "tools", new String[]{"getEmployeeDetails", "getEmployeeLeave"}
+//        ));
+//    }
+//
+//    // --- POST request to execute MCP tools ---
+//    @PostMapping
+//    public ResponseEntity<?> handleMcp(@RequestBody(required = false) Map<String, Object> body) {
+//
+//        // Copilot sends empty POST for testing
+//        if (body == null || body.get("tool") == null) {
+//            return ResponseEntity.ok(Map.of(
+//                    "status", "ok",
+//                    "message", "MCP Server is running"
+//            ));
+//        }
+//
+//        String tool = (String) body.get("tool");
+//        Object args = body.get("arguments");
+//
+//        JsonNode arguments = mapper.convertValue(args, JsonNode.class);
+//
+//        try {
+//            Object result = dispatcher.invoke(tool, arguments);
+//            return ResponseEntity.ok(result);
+//        } catch (Exception e) {
+//            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+//        }
+//    }
+//}
+
+
 package com.example.MCPServer.controller;
 
-import com.example.MCPServer.core.ToolDispatcher;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.MCPServer.Service.EmployeeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 
+/**
+ * MCP protocol endpoints:
+ *  - GET  /mcp/status
+ *  - GET  /mcp/tools
+ *  - GET  /mcp/resources
+ *  - POST /mcp/execute
+ */
 @RestController
 @RequestMapping("/mcp")
 public class McpController {
 
-    private final ToolDispatcher dispatcher;
+    private final McpRegistry registry;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public McpController(ToolDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
+    public McpController(McpRegistry registry) {
+        this.registry = registry;
     }
 
-    // --- GET request for Copilot testing ---
-    @GetMapping
-    public ResponseEntity<?> healthCheck() {
-        return ResponseEntity.ok(Map.of(
-                "status", "ok",
-                "message", "MCP Server is running",
-                "tools", new String[]{"getEmployeeDetails", "getEmployeeLeave"}
-        ));
+    @GetMapping("/status")
+    public ResponseEntity<?> status() {
+        return ResponseEntity.ok(Map.of("status", "ok", "message", "MCP Server running"));
     }
 
-    // --- POST request to execute MCP tools ---
-    @PostMapping
-    public ResponseEntity<?> handleMcp(@RequestBody(required = false) Map<String, Object> body) {
+    /**
+     * Return list of tools (name, description, inputSchema)
+     * Copilot Studio will call this to list available tools.
+     */
+    @GetMapping("/tools")
+    public ResponseEntity<?> tools() {
+        return ResponseEntity.ok(Map.of("tools", registry.getToolDefinitions()));
+    }
 
-        // Copilot sends empty POST for testing
+    /**
+     * Return resources (optional informative context). We'll include an example file URL.
+     */
+    @GetMapping("/resources")
+    public ResponseEntity<?> resources() {
+        return ResponseEntity.ok(Map.of("resources", registry.getResources()));
+    }
+
+    /**
+     * Execute a tool. Body:
+     * {
+     *   "tool": "getEmployeeDetails",
+     *   "arguments": { "email": "john@example.com" }
+     * }
+     */
+    @PostMapping("/execute")
+    public ResponseEntity<?> execute(@RequestBody Map<String, Object> body,
+                                     @RequestHeader Map<String, String> headers) {
         if (body == null || body.get("tool") == null) {
-            return ResponseEntity.ok(Map.of(
-                    "status", "ok",
-                    "message", "MCP Server is running"
-            ));
+            return ResponseEntity.badRequest().body(Map.of("error", "Tool name is missing"));
         }
 
         String tool = (String) body.get("tool");
-        Object args = body.get("arguments");
-
-        JsonNode arguments = mapper.convertValue(args, JsonNode.class);
+        Object argsObj = body.get("arguments");
+        JsonNode arguments = mapper.convertValue(argsObj, JsonNode.class);
 
         try {
-            Object result = dispatcher.invoke(tool, arguments);
-            return ResponseEntity.ok(result);
+            Object result = registry.invoke(tool, arguments, headers);
+            return ResponseEntity.ok(Map.of("result", result));
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.status(400).body(Map.of("error", iae.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "details", e.getMessage()));
         }
     }
 }
