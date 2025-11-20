@@ -67,7 +67,8 @@ import java.util.*;
 
 /**
  * MCP protocol endpoints:
- *  - GET  /mcp              (required by Copilot Studio)
+ *  - GET  /mcp
+ *  - POST /mcp     <-- Copilot Studio needs this for handshake
  *  - GET  /mcp/status
  *  - GET  /mcp/tools
  *  - GET  /mcp/resources
@@ -85,15 +86,25 @@ public class McpController {
     }
 
     /**
-     * ✅ REQUIRED FOR COPILOT STUDIO
-     * Copilot calls GET /mcp first to test the server.
-     * Without this, you'll get 404 Not Found.
+     * 🔵 Copilot Studio calls this first (GET handshake)
      */
     @GetMapping
-    public ResponseEntity<?> root() {
+    public ResponseEntity<?> rootGet() {
         return ResponseEntity.ok(Map.of(
                 "status", "ok",
-                "message", "MCP server root endpoint",
+                "message", "MCP server root endpoint (GET)",
+                "endpoints", List.of("/mcp/status", "/mcp/tools", "/mcp/resources", "/mcp/execute")
+        ));
+    }
+
+    /**
+     * 🔵 Copilot Studio ALSO calls POST /mcp (POST handshake)
+     */
+    @PostMapping
+    public ResponseEntity<?> rootPost() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "message", "MCP server root endpoint (POST)",
                 "endpoints", List.of("/mcp/status", "/mcp/tools", "/mcp/resources", "/mcp/execute")
         ));
     }
@@ -103,45 +114,36 @@ public class McpController {
         return ResponseEntity.ok(Map.of("status", "ok", "message", "MCP Server running"));
     }
 
-    /**
-     * Return list of tools (name, description, inputSchema)
-     * Copilot Studio will call this to list available tools.
-     */
     @GetMapping("/tools")
     public ResponseEntity<?> tools() {
         return ResponseEntity.ok(Map.of("tools", registry.getToolDefinitions()));
     }
 
-    /**
-     * Return resources (optional informative context).
-     */
     @GetMapping("/resources")
     public ResponseEntity<?> resources() {
         return ResponseEntity.ok(Map.of("resources", registry.getResources()));
     }
 
-    /**
-     * Execute a tool.
-     */
     @PostMapping("/execute")
     public ResponseEntity<?> execute(@RequestBody Map<String, Object> body,
                                      @RequestHeader Map<String, String> headers) {
+
         if (body == null || body.get("tool") == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Tool name is missing"));
         }
 
         String tool = (String) body.get("tool");
-        Object argsObj = body.get("arguments");
-        JsonNode arguments = mapper.convertValue(argsObj, JsonNode.class);
+        JsonNode arguments = mapper.convertValue(body.get("arguments"), JsonNode.class);
 
         try {
             Object result = registry.invoke(tool, arguments, headers);
             return ResponseEntity.ok(Map.of("result", result));
         } catch (IllegalArgumentException iae) {
-            return ResponseEntity.status(400).body(Map.of("error", iae.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", iae.getMessage()));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "Internal server error", "details", e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal server error", "details", e.getMessage()));
         }
     }
 }
+
