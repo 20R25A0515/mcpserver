@@ -112,18 +112,17 @@ public class McpController {
         ));
     }
     @GetMapping(value = "/manifest.json", produces = "application/json")
-
     public ResponseEntity<?> manifest() {
         Map<String, Object> manifest = new LinkedHashMap<>();
         manifest.put("version", "1.0");
         manifest.put("name", "HRMCP");
         manifest.put("description", "HR MCP server for employee data");
+        manifest.put("protocol", "mcp");
+        manifest.put("entryPoint", "wss://your-domain/mcp/ws"); // IMPORTANT: Use your Render WebSocket URL
         manifest.put("tools", registry.getToolDefinitions());
         manifest.put("resources", registry.getResources());
         return ResponseEntity.ok(manifest);
-
     }
-
 
 
     @GetMapping("/status")
