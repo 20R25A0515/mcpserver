@@ -60,7 +60,6 @@ package com.example.MCPServer.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.MCPServer.Service.EmployeeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,6 +67,7 @@ import java.util.*;
 
 /**
  * MCP protocol endpoints:
+ *  - GET  /mcp              (required by Copilot Studio)
  *  - GET  /mcp/status
  *  - GET  /mcp/tools
  *  - GET  /mcp/resources
@@ -82,6 +82,20 @@ public class McpController {
 
     public McpController(McpRegistry registry) {
         this.registry = registry;
+    }
+
+    /**
+     * ✅ REQUIRED FOR COPILOT STUDIO
+     * Copilot calls GET /mcp first to test the server.
+     * Without this, you'll get 404 Not Found.
+     */
+    @GetMapping
+    public ResponseEntity<?> root() {
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "message", "MCP server root endpoint",
+                "endpoints", List.of("/mcp/status", "/mcp/tools", "/mcp/resources", "/mcp/execute")
+        ));
     }
 
     @GetMapping("/status")
@@ -99,7 +113,7 @@ public class McpController {
     }
 
     /**
-     * Return resources (optional informative context). We'll include an example file URL.
+     * Return resources (optional informative context).
      */
     @GetMapping("/resources")
     public ResponseEntity<?> resources() {
@@ -107,11 +121,7 @@ public class McpController {
     }
 
     /**
-     * Execute a tool. Body:
-     * {
-     *   "tool": "getEmployeeDetails",
-     *   "arguments": { "email": "john@example.com" }
-     * }
+     * Execute a tool.
      */
     @PostMapping("/execute")
     public ResponseEntity<?> execute(@RequestBody Map<String, Object> body,
